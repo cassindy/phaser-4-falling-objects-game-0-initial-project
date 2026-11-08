@@ -39,7 +39,7 @@ export class GameScene extends Phaser.Scene {
     //this.add.image(this.scale.width / 2, this.scale.height / 2, ASSET_KEYS.BACKGROUND);
     this.add.image(width / 2, height / 2, ASSET_KEYS.BACKGROUND);
 
-    this.#player = this.add.image(width / 2, height, ASSET_KEYS.JAR);
+    this.#player = this.add.image(width / 2, height, ASSET_KEYS.JAR).setDepth(1);
 
     this.#cursorKey = this.input.keyboard?.createCursorKeys();
 
