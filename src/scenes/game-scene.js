@@ -82,7 +82,7 @@ export class GameScene extends Phaser.Scene {
         element.y += this.#fallingSpeed * (delta / 1000);
 
         if (element.y > this.scale.height) {
-          element.destory();
+          element.destroy();
           this.#fallingObjects.splice(element, 1);
         }
       }
