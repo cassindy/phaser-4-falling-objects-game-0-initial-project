@@ -9,10 +9,15 @@ export class GameScene extends Phaser.Scene {
   #player;
   /** @type {integer | undefined} */
   #playerSpeed;
+  /** @type {integer | undefined} */
+  #fallingSpeed;
+  /** @type {string[] | undefined} */
   #fallingObjectFrames;
+  #fallingObjects;
 
   init() {
     this.#playerSpeed = 500;
+    this.#fallingSpeed = 100;
   }
 
   constructor() {
@@ -36,16 +41,26 @@ export class GameScene extends Phaser.Scene {
 
     this.#player = this.add.image(width / 2, height, ASSET_KEYS.JAR);
 
-    // this.add.image(width / 2, height / 2, ASSET_KEYS.OBJECTS, 'button1.png').setScale(0.5);
-    this.#spawnFallingObjects();
-
     this.#cursorKey = this.input.keyboard?.createCursorKeys();
 
-    console.log(this.textures.get(ASSET_KEYS.OBJECTS));
+    this.#fallingObjectFrames = Object.keys(this.textures.get(ASSET_KEYS.OBJECTS).frames).filter(
+      (name) => name !== '__BASE',
+    );
+    this.#fallingObjects = [];
+
+    // this.add.image(width / 2, height / 2, ASSET_KEYS.OBJECTS, 'button1.png').setScale(0.5);
+    // this.#spawnFallingObjects();
+
+    this.time.addEvent({
+      delay: 1000,
+      callback: this.#spawnFallingObjects,
+      callbackScope: this,
+      loop: true,
+    });
   }
 
   update(time, delta) {
-    if (this.#player && this.#playerSpeed) {
+    if (this.#player && this.#playerSpeed && this.#fallingSpeed) {
       const moveStep = this.#playerSpeed * (delta / 1000);
 
       if (this.#cursorKey?.right.isDown) {
@@ -60,11 +75,26 @@ export class GameScene extends Phaser.Scene {
       if (this.#player.x > this.scale.width - this.#player.displayWidth / 2) {
         this.#player.x = this.scale.width - this.#player.displayWidth / 2;
       }
+
+      //falling
+      for (let index = this.#fallingObjects.length - 1; index >= 0; index--) {
+        const element = this.#fallingObjects[index];
+        element.y += this.#fallingSpeed * (delta / 1000);
+
+        if (element.y > this.scale.height) {
+          element.destory();
+          this.#fallingObjects.splice(element, 1);
+        }
+      }
     }
   }
 
   #spawnFallingObjects() {
-    const { width, height } = this.scale;
-    this.add.image(Phaser.Math.RND.between(50, width - 50), 0, ASSET_KEYS.OBJECTS, 'button1.png').setScale(0.85);
+    const randomFrame = Phaser.Utils.Array.GetRandom(this.#fallingObjectFrames);
+    const obj = this.add
+      .image(Phaser.Math.RND.between(50, this.scale.width - 50), 0, ASSET_KEYS.OBJECTS, randomFrame)
+      .setScale(0.85);
+    this.#fallingObjects.push(obj);
+    console.log(this.#fallingObjects.length);
   }
 }
