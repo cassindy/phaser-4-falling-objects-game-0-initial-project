@@ -81,7 +81,13 @@ export class GameScene extends Phaser.Scene {
         const element = this.#fallingObjects[index];
         element.y += this.#fallingSpeed * (delta / 1000);
 
-        if (element.y > this.scale.height) {
+        const overlapPoints = Phaser.Geom.Intersects.GetRectangleToRectangle(
+          this.#player.getBounds(),
+          element.getBound(),
+        );
+        // console.log(overlapPoints);
+
+        if (element.y > this.scale.height + element.height) {
           element.destroy();
           this.#fallingObjects.splice(element, 1);
         }
@@ -95,6 +101,5 @@ export class GameScene extends Phaser.Scene {
       .image(Phaser.Math.RND.between(50, this.scale.width - 50), 0, ASSET_KEYS.OBJECTS, randomFrame)
       .setScale(0.85);
     this.#fallingObjects.push(obj);
-    console.log(this.#fallingObjects.length);
   }
 }
