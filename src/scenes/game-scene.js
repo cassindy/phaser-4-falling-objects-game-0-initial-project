@@ -13,11 +13,28 @@ export class GameScene extends Phaser.Scene {
   #fallingSpeed;
   /** @type {string[] | undefined} */
   #fallingObjectFrames;
+  /** @type {Phaser.GameObjects.Image[] | undefined} */
   #fallingObjects;
+  /** @type {integer | undefined} */
+  #fallingObjectsCount;
+  /** @type {Phaser.GameObjects.Text | undefined} */
+  #fallingObjectsCountText;
+  /** @type {integer | undefined} */
+  #score;
+  /** @type {Phaser.GameObjects.Text | undefined} */
+  #scoreText;
+  /** @type {integer | undefined} */
+  #playerLifeCount = 3;
+  /** @type {Phaser.GameObjects.Image | undefined} */
+  #playerLifeHeartIcon;
+  /** @type {{x:number,y:number}} */
+  #UiStartPoint = { x: 50, y: 50 };
 
   init() {
     this.#playerSpeed = 500;
-    this.#fallingSpeed = 100;
+    this.#fallingSpeed = 300;
+    this.#score = 0;
+    this.#fallingObjectsCount = 0;
   }
 
   constructor() {
@@ -57,6 +74,51 @@ export class GameScene extends Phaser.Scene {
       callbackScope: this,
       loop: true,
     });
+
+    const textConfig = {
+      fontSize: '30px',
+      color: '#760404',
+      stroke: '#ffffff',
+      strokeThickness: 2,
+    };
+    const scorePrefix = this.add.text(this.#UiStartPoint?.x, this.#UiStartPoint?.y, 'Score : ', textConfig);
+    this.#scoreText = this.add.text(scorePrefix.x + scorePrefix.width, scorePrefix.y, `${this.#score}`, textConfig);
+    const fallingLostPrefix = this.add.text(
+      this.#UiStartPoint?.x,
+      this.#UiStartPoint?.y + this.#scoreText.height,
+      'Lost : ',
+      textConfig,
+    );
+    this.#fallingObjectsCountText = this.add.text(
+      this.#UiStartPoint?.x + fallingLostPrefix.width,
+      this.#UiStartPoint?.y + this.#scoreText.height,
+      `${this.#fallingObjectsCount}`,
+      textConfig,
+    );
+    const lifeCount = this.add.text(
+      this.#UiStartPoint?.x,
+      this.#UiStartPoint?.y - scorePrefix.height,
+      'Life : ',
+      textConfig,
+    );
+
+    // this.#playerLifeHeartIcon = this.add.image(
+    //   (this.#UiStartPoint?.x + lifeCount.width) * 1.05,
+    //   ((this.#UiStartPoint?.y - scorePrefix.height) / 3) * 5,
+    //   ASSET_KEYS.Heart,
+    // );
+    const gap = 50;
+    if (this.#playerLifeCount) {
+      for (let index = 0; index < this.#playerLifeCount; index++) {
+        this.#playerLifeHeartIcon = this.add.image(
+          this.#UiStartPoint?.x + lifeCount.width + gap * index + 20,
+          ((this.#UiStartPoint?.y - scorePrefix.height) / 3) * 5,
+          ASSET_KEYS.Heart,
+        );
+        this.#playerLifeHeartIcon.scale = 0.1;
+        // this.
+      }
+    }
   }
 
   update(time, delta) {
@@ -83,13 +145,23 @@ export class GameScene extends Phaser.Scene {
 
         const overlapPoints = Phaser.Geom.Intersects.GetRectangleToRectangle(
           this.#player.getBounds(),
-          element.getBound(),
+          element.getBounds(),
         );
-        // console.log(overlapPoints);
+        console.log(overlapPoints);
+
+        if (overlapPoints.length > 0) {
+          element.destroy();
+          this.#fallingObjects.splice(index, 1);
+          this.#score += 1;
+
+          this.#scoreText.setText(`${this.#score}`);
+        }
 
         if (element.y > this.scale.height + element.height) {
           element.destroy();
           this.#fallingObjects.splice(element, 1);
+          this.#fallingObjectsCount += 1;
+          this.#fallingObjectsCountText?.setText(`${this.#fallingObjectsCount}`);
         }
       }
     }
